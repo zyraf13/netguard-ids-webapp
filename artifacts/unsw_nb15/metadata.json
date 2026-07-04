@@ -1,0 +1,110 @@
+{
+  "dataset_id": "unsw_nb15",
+  "best_model": "RandomForest",
+  "feature_names": [
+    "dur",
+    "proto",
+    "service",
+    "state",
+    "spkts",
+    "dpkts",
+    "sbytes",
+    "dbytes",
+    "rate",
+    "sttl",
+    "dttl",
+    "sload",
+    "dload",
+    "sloss",
+    "dloss",
+    "sinpkt",
+    "dinpkt",
+    "sjit",
+    "djit",
+    "swin",
+    "stcpb",
+    "dtcpb",
+    "dwin",
+    "tcprtt",
+    "synack",
+    "ackdat",
+    "smean",
+    "dmean",
+    "trans_depth",
+    "response_body_len",
+    "ct_srv_src",
+    "ct_state_ttl",
+    "ct_dst_ltm",
+    "ct_src_dport_ltm",
+    "ct_dst_sport_ltm",
+    "ct_dst_src_ltm",
+    "is_ftp_login",
+    "ct_ftp_cmd",
+    "ct_flw_http_mthd",
+    "ct_src_ltm",
+    "ct_srv_dst",
+    "is_sm_ips_ports"
+  ],
+  "categorical_features": [
+    "proto",
+    "service",
+    "state"
+  ],
+  "label_meaning": {
+    "0": "Normal",
+    "1": "Attack"
+  },
+  "evaluation": {
+    "KNN": {
+      "accuracy": 0.9194139904918988,
+      "precision": 0.9195355530030812,
+      "recall": 0.9194139904918988,
+      "f1_score": 0.9194695491396301,
+      "training_time_sec": 20.4645037651062,
+      "confusion_matrix": [
+        [
+          16583,
+          2017
+        ],
+        [
+          2136,
+          30799
+        ]
+      ]
+    },
+    "RandomForest": {
+      "accuracy": 0.95232366352964,
+      "precision": 0.9523873867598478,
+      "recall": 0.95232366352964,
+      "f1_score": 0.9523516024421604,
+      "training_time_sec": 32.31694483757019,
+      "confusion_matrix": [
+        [
+          17422,
+          1178
+        ],
+        [
+          1279,
+          31656
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 0.9486174444552246,
+      "precision": 0.9488956488057371,
+      "recall": 0.9486174444552246,
+      "f1_score": 0.9487145580390125,
+      "training_time_sec": 2.303593635559082,
+      "confusion_matrix": [
+        [
+          17442,
+          1158
+        ],
+        [
+          1490,
+          31445
+        ]
+      ]
+    }
+  }
+}

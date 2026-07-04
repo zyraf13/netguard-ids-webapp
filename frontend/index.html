@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zyraff — Network Intrusion Detection</title>
+  <style>
+    :root {
+      --bg: #0b0f0e;
+      --panel: #111815;
+      --line: #1e2b26;
+      --text: #d9e6df;
+      --dim: #7c9187;
+      --accent: #35e0a1;
+      --accent-dim: #1c7a5a;
+      --danger: #ff5d5d;
+      --mono: "IBM Plex Mono", "Courier New", monospace;
+      --sans: "Inter", -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 0px, transparent 1px, transparent 3px);
+    }
+
+    header {
+      padding: 28px 40px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 15px;
+      letter-spacing: 3px;
+      color: var(--accent);
+    }
+
+    .logo span {
+      color: var(--dim);
+    }
+
+    header h1 {
+      font-size: 22px;
+      margin: 4px 0 0;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .status {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--dim);
+    }
+
+    .dot.live {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 40px 80px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 24px;
+    }
+
+    .panel h2 {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin: 0 0 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dataset-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ds-btn {
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: 3px;
+      border: 1px solid var(--line);
+      background: #0d1310;
+      color: var(--dim);
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .ds-btn:hover {
+      border-color: var(--accent-dim);
+      color: var(--text);
+    }
+
+    .ds-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #0e1b16;
+    }
+
+    .best-model-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent-dim);
+    }
+
+    #featureForm {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .field label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+      margin-bottom: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 9px 10px;
+      background: #0d1310;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .run-btn {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 1px;
+      padding: 12px 24px;
+      background: var(--accent);
+      color: #04140d;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .run-btn:hover {
+      background: #4ff0b3;
+    }
+
+    .run-btn:disabled {
+      background: var(--line);
+      color: var(--dim);
+      cursor: not-allowed;
+    }
+
+    .hint {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      display: none;
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result.normal {
+      border-color: var(--accent-dim);
+      background: rgba(53, 224, 161, 0.06);
+    }
+
+    .result.attack {
+      border-color: var(--danger);
+      background: rgba(255, 93, 93, 0.06);
+    }
+
+    .result .verdict {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .result.normal .verdict {
+      color: var(--accent);
+    }
+
+    .result.attack .verdict {
+      color: var(--danger);
+    }
+
+    .result .meta {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--dim);
+      margin-top: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 12.5px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: var(--dim);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 10.5px;
+    }
+
+    tr.best td {
+      color: var(--accent);
+    }
+
+    .bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bar-bg {
+      flex: 1;
+      height: 5px;
+      background: var(--line);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--accent-dim);
+    }
+
+    tr.best .bar-fill {
+      background: var(--accent);
+    }
+
+    .empty {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--dim);
+      text-align: center;
+      padding: 30px 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="scanlines"></div>
+
+  <header>
+    <div>
+      <div class="logo">AL<span>Fariszz</span> // IDS CONSOLE</div>
+      <h1>Deteksi Intrusi Jaringan</h1>
+    </div>
+    <div class="status"><span class="dot" id="apiDot"></span><span id="apiStatus">menghubungkan ke API...</span></div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>01 — Pilih Dataset & Model</h2>
+      <div class="dataset-row" id="datasetRow">
+        <span class="hint">Memuat daftar dataset...</span>
+      </div>
+    </section>
+
+    <section class="panel" id="evalPanel" style="display:none;">
+      <h2>02 — Perbandingan Performa Model <span class="best-model-tag" id="bestModelTag"></span></h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1</th>
+            <th>Waktu (s)</th>
+          </tr>
+        </thead>
+        <tbody id="evalBody"></tbody>
+      </table>
+    </section>
+
+    <section class="panel" id="predictPanel" style="display:none;">
+      <h2>03 — Uji Prediksi Data Baru</h2>
+      <form id="featureForm"></form>
+      <div class="actions">
+        <button type="button" class="run-btn" id="runBtn">JALANKAN PREDIKSI</button>
+        <span class="hint" id="fieldHint"></span>
+      </div>
+      <div class="result" id="resultBox">
+        <div class="verdict" id="verdictText"></div>
+        <div class="meta" id="verdictMeta"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="emptyPanel">
+      <div class="empty">Belum ada dataset yang siap. Jalankan salah satu script training di folder <b>training/</b>
+        terlebih dahulu, lalu refresh halaman ini.</div>
+    </section>
+  </main>
+
+  <footer>Backend: FastAPI &middot; Model: KNN / Random Forest / XGBoost &middot; Dibangun oleh Salman Alfaris</footer>
+
+  <script>
+    const API_BASE = "http://localhost:8000/api";
+    let currentDataset = null;
+
+    async function init() {
+      try {
+        const res = await fetch(`${API_BASE}/datasets`);
+        const data = await res.json();
+        document.getElementById('apiDot').classList.add('live');
+        document.getElementById('apiStatus').textContent = 'API terhubung';
+
+        const row = document.getElementById('datasetRow');
+        row.innerHTML = '';
+        if (!data.datasets.length) {
+          document.getElementById('emptyPanel').style.display = 'block';
+          return;
+        }
+        document.getElementById('emptyPanel').style.display = 'none';
+
+        data.datasets.forEach(ds => {
+          const btn = document.createElement('button');
+          btn.className = 'ds-btn';
+          btn.textContent = ds.dataset_id.toUpperCase().replace('_', '-');
+          btn.onclick = () => selectDataset(ds.dataset_id, btn);
+          row.appendChild(btn);
+        });
+        // auto-select dataset pertama
+        selectDataset(data.datasets[0].dataset_id, row.children[0]);
+
+      } catch (err) {
+        document.getElementById('apiStatus').textContent = 'API tidak terjangkau — jalankan backend dulu (uvicorn app:app --port 8000)';
+      }
+    }
+
+    async function selectDataset(id, btnEl) {
+      currentDataset = id;
+      document.querySelectorAll('.ds-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+
+      const res = await fetch(`${API_BASE}/datasets/${id}`);
+      const meta = await res.json();
+
+      renderEval(meta);
+      renderForm(meta);
+    }
+
+    function renderEval(meta) {
+      document.getElementById('evalPanel').style.display = 'block';
+      document.getElementById('bestModelTag').textContent = `terbaik: ${meta.best_model}`;
+      const body = document.getElementById('evalBody');
+      body.innerHTML = '';
+
+      const maxF1 = Math.max(...Object.values(meta.evaluation).map(v => v.f1_score));
+      for (const [name, m] of Object.entries(meta.evaluation)) {
+        const tr = document.createElement('tr');
+        if (name === meta.best_model) tr.className = 'best';
+        tr.innerHTML = `
+      <td>${name}</td>
+      <td>${(m.accuracy * 100).toFixed(2)}%</td>
+      <td>${(m.precision * 100).toFixed(2)}%</td>
+      <td>${(m.recall * 100).toFixed(2)}%</td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar-bg"><div class="bar-fill" style="width:${(m.f1_score / maxF1 * 100)}%"></div></div>
+          <span>${(m.f1_score * 100).toFixed(2)}%</span>
+        </div>
+      </td>
+      <td>${m.training_time_sec.toFixed(2)}</td>
+    `;
+        body.appendChild(tr);
+      }
+    }
+
+    function renderForm(meta) {
+      document.getElementById('predictPanel').style.display = 'block';
+      const form = document.getElementById('featureForm');
+      form.innerHTML = '';
+      document.getElementById('resultBox').classList.remove('show');
+
+      meta.feature_names.forEach(fname => {
+        const wrap = document.createElement('div');
+        wrap.className = 'field';
+        const label = document.createElement('label');
+        label.textContent = fname;
+        label.title = fname;
+        wrap.appendChild(label);
+
+        let input;
+        if (meta.categorical_features.includes(fname)) {
+          input = document.createElement('input');
+          input.placeholder = 'mis: tcp / http / dsb';
+        } else {
+          input = document.createElement('input');
+          input.type = 'number';
+          input.step = 'any';
+          input.placeholder = '0';
+        }
+        input.dataset.field = fname;
+        wrap.appendChild(input);
+        form.appendChild(wrap);
+      });
+
+      document.getElementById('fieldHint').textContent = `${meta.feature_names.length} fitur untuk diisi`;
+    }
+
+    document.getElementById('runBtn').addEventListener('click', async () => {
+      if (!currentDataset) return;
+      const inputs = document.querySelectorAll('#featureForm input');
+      const features = {};
+      inputs.forEach(inp => {
+        const val = inp.value.trim();
+        features[inp.dataset.field] = inp.type === 'number' ? Number(val || 0) : val;
+      });
+
+      const btn = document.getElementById('runBtn');
+      btn.disabled = true;
+      btn.textContent = 'MEMPROSES...';
+
+      try {
+        const res = await fetch(`${API_BASE}/datasets/${currentDataset}/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ features })
+        });
+        const data = await res.json();
+        const box = document.getElementById('resultBox');
+
+        if (!res.ok) {
+          box.className = 'result show attack';
+          document.getElementById('verdictText').textContent = 'ERROR';
+          document.getElementById('verdictMeta').textContent = data.detail || 'Terjadi kesalahan';
+        } else {
+          const isAttack = data.prediction_raw !== 0;
+          box.className = 'result show ' + (isAttack ? 'attack' : 'normal');
+          document.getElementById('verdictText').textContent =
+            (isAttack ? '⚠ TERDETEKSI: ' : '✓ ') + data.prediction_label.toUpperCase();
+          document.getElementById('verdictMeta').textContent =
+            `Model digunakan: ${data.model_used}` +
+            (data.probabilities ? ` — probabilitas: ${data.probabilities.map(p => (p * 100).toFixed(1) + '%').join(' / ')}` : '');
+        }
+      } catch (err) {
+        alert('Gagal menghubungi API: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'JALANKAN PREDIKSI';
+      }
+    });
+
+    init();
+  </script>
+</body>
+
+</html>
