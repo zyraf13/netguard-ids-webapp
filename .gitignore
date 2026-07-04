@@ -6,3 +6,5 @@ data/
 .env
 
 .DS_Store
+
+artifacts/cicids2019/
