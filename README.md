@@ -1,6 +1,6 @@
 # NetGuard — Web Deteksi Intrusi Jaringan
 
-Web app ini dibangun dari notebook riset `pipeline_final.ipynb`, yang membandingkan
+Web app ini dibangun dari notebook riset `Machine-Learning-Based-Network-Intrusion-Detection-System`, yang membandingkan
 model **KNN**, **Random Forest**, dan **XGBoost** pada tiga dataset: **UNSW-NB15**,
 **NSL-KDD**, dan **CICIDS2019**.
 
@@ -8,20 +8,20 @@ model **KNN**, **Random Forest**, dan **XGBoost** pada tiga dataset: **UNSW-NB15
 
 ```
 ids_webapp/
-├── data/                     ⟵ taruh file dataset mentah di sini (belum ada, harus diisi manual)
+├── data/                     
 │   ├── unsw_nb15/
 │   ├── nsl_kdd/
 │   └── cicids2019/
-├── training/                 ⟵ script untuk melatih & menyimpan model
+├── training/                
 │   ├── common.py
 │   ├── train_unsw_nb15.py
 │   ├── train_nsl_kdd.py
 │   └── train_cicids2019.py
-├── artifacts/                ⟵ akan dibuat otomatis setelah training (model, scaler, encoder, metadata)
-├── backend/                  ⟵ REST API (FastAPI)
+├── artifacts/                
+├── backend/                 
 │   ├── app.py
 │   └── requirements.txt
-└── frontend/                 ⟵ dashboard web (HTML/JS statis, tidak perlu build tool)
+└── frontend/                 
     └── index.html
 ```
 
@@ -35,9 +35,6 @@ Unduh dan taruh file berikut (nama file harus persis sama):
 | NSL-KDD | `Train_data.csv`, `Test_data.csv` (delimiter `;`) | `data/nsl_kdd/` |
 | CICIDS2019 | `syn_data.csv` (dari Kaggle: `tarundhamor/cicids-2019-dataset`) | `data/cicids2019/` |
 
-Kamu tidak perlu menyiapkan ketiganya sekaligus — dataset mana pun yang belum
-ada file-nya akan otomatis dilewati / muncul errornya sendiri saat training,
-dan dashboard hanya akan menampilkan dataset yang berhasil dilatih.
 
 ## Langkah 2 — Install dependency
 
