@@ -1,106 +1,59 @@
-# NetGuard — Web Deteksi Intrusi Jaringan
+# NetGuard IDS Web App
 
-Web app ini dibangun dari notebook riset `Machine-Learning-Based-Network-Intrusion-Detection-System`, yang membandingkan
-model **KNN**, **Random Forest**, dan **XGBoost** pada tiga dataset: **UNSW-NB15**,
-**NSL-KDD**, dan **CICIDS2019**.
+NetGuard merupakan aplikasi web berbasis **Machine Learning** yang dirancang untuk mendeteksi intrusi, serangan siber, dan anomali pada lalu lintas jaringan.
 
-## Struktur folder
+Aplikasi ini dikembangkan dari penelitian *Machine Learning-Based Network Intrusion Detection System* dengan membandingkan tiga algoritma klasifikasi, yaitu **K-Nearest Neighbors (KNN)**, **Random Forest**, dan **XGBoost** pada dataset **UNSW-NB15**, **NSL-KDD**, dan **CICIDS 2019**.
 
-```
-ids_webapp/
-├── data/                     
-│   ├── unsw_nb15/
-│   ├── nsl_kdd/
-│   └── cicids2019/
-├── training/                
-│   ├── common.py
-│   ├── train_unsw_nb15.py
-│   ├── train_nsl_kdd.py
-│   └── train_cicids2019.py
-├── artifacts/                
-├── backend/                 
-│   ├── app.py
-│   └── requirements.txt
-└── frontend/                 
-    └── index.html
-```
+Setiap model dievaluasi menggunakan metrik **accuracy, precision, recall, dan F1-score**. Model dengan F1-score terbaik pada masing-masing dataset dipilih sebagai model utama untuk melakukan prediksi melalui aplikasi web.
 
-## Langkah 1 — Siapkan dataset
+NetGuard terdiri dari backend API berbasis **FastAPI** dan frontend dashboard yang memungkinkan pengguna memilih dataset, melihat perbandingan performa model, memasukkan karakteristik lalu lintas jaringan, dan memperoleh hasil prediksi berupa **Normal** atau **Attack**.  
 
-Unduh dan taruh file berikut (nama file harus persis sama):
+## Fitur Utama
 
-| Dataset | File | Taruh di |
-|---|---|---|
-| UNSW-NB15 | `UNSW_NB15_training-set.csv`, `UNSW_NB15_testing-set.csv` | `data/unsw_nb15/` |
-| NSL-KDD | `Train_data.csv`, `Test_data.csv` (delimiter `;`) | `data/nsl_kdd/` |
-| CICIDS2019 | `syn_data.csv` (dari Kaggle: `tarundhamor/cicids-2019-dataset`) | `data/cicids2019/` |
+- Mendukung dataset UNSW-NB15, NSL-KDD, dan CICIDS 2019.
+- Pra-pemrosesan data numerik dan kategorikal.
+- Implementasi algoritma KNN, Random Forest, dan XGBoost.
+- Pemilihan model terbaik berdasarkan F1-score.
+- Perbandingan accuracy, precision, recall, dan F1-score.
+- Form prediksi yang menyesuaikan fitur setiap dataset.
+- Prediksi lalu lintas jaringan sebagai Normal atau Attack.
+- Penyimpanan model, scaler, encoder, dan metadata menggunakan Joblib.
+- Backend REST API menggunakan FastAPI.
+- Dashboard web untuk visualisasi hasil dan proses inferensi.
 
+## Teknologi yang Digunakan
 
-## Langkah 2 — Install dependency
+### Machine Learning
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+- XGBoost
+- Joblib
 
-```bash
-cd ids_webapp
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r backend/requirements.txt
-```
+### Backend
+- FastAPI
+- Uvicorn
+- Pydantic
 
-## Langkah 3 — Latih model & simpan artifacts
+### Frontend
+- HTML
+- CSS
+- JavaScript
 
-Jalankan salah satu atau semua, sesuai dataset yang sudah kamu siapkan:
+Daftar dependency backend pada repository mencakup FastAPI, Uvicorn, Pandas, NumPy, Scikit-learn, XGBoost, Joblib, dan Pydantic. 
 
-```bash
-cd training
-python train_unsw_nb15.py
-python train_nsl_kdd.py
-python train_cicids2019.py
-```
+## Alur Sistem
 
-Setiap script akan:
-1. Load & preprocessing data (sama seperti notebook riset asli).
-2. Melatih KNN, Random Forest, XGBoost.
-3. Memilih model dengan **F1-score** tertinggi sebagai model utama.
-4. Menyimpan `model.joblib`, `scaler.joblib`, `encoders.joblib`, dan
-   `metadata.json` (berisi daftar fitur, hasil evaluasi semua model, arti label)
-   ke `artifacts/<nama_dataset>/`.
+1. Dataset dimuat dan dibersihkan.
+2. Fitur kategorikal diubah menjadi data numerik.
+3. Fitur numerik dinormalisasi.
+4. Data digunakan untuk melatih KNN, Random Forest, dan XGBoost.
+5. Setiap model dievaluasi menggunakan beberapa metrik klasifikasi.
+6. Model dengan F1-score tertinggi disimpan sebagai model utama.
+7. Pengguna memasukkan data lalu lintas jaringan melalui dashboard.
+8. Backend memproses input dan menghasilkan prediksi Normal atau Attack.
 
-## Langkah 4 — Jalankan backend API
+## Tujuan Pengembangan
 
-```bash
-cd backend
-uvicorn app:app --reload --port 8000
-```
-
-Cek di browser: `http://localhost:8000/api/datasets` — harus menampilkan
-dataset yang tadi berhasil dilatih.
-
-## Langkah 5 — Buka frontend
-
-Buka file `frontend/index.html` langsung di browser (double click, atau lewat
-extension "Live Server" di VS Code). Dashboard akan otomatis:
-- Menampilkan tombol pilihan dataset yang tersedia.
-- Menampilkan tabel perbandingan performa (accuracy, precision, recall, F1) semua model.
-- Membuat form input sesuai fitur dataset yang dipilih.
-- Mengirim data ke `/predict` dan menampilkan hasil (Normal / Attack).
-
-> Jika ingin frontend & backend berjalan di domain/port berbeda saat deploy
-> nanti, ubah nilai `API_BASE` di bagian atas tag `<script>` pada `index.html`.
-
-## Deploy ke internet (opsional, langkah lanjutan)
-
-- **Backend**: bisa dideploy ke Railway, Render, atau VPS biasa (jalankan
-  `uvicorn` di baliknya, atau bungkus dengan Docker).
-- **Frontend**: karena hanya HTML statis, bisa langsung di-host di Netlify,
-  Vercel, atau GitHub Pages.
-- Ingat: folder `artifacts/` (berisi model hasil training) harus ikut
-  di-deploy bersama backend, karena backend membacanya saat start.
-
-## Catatan penting
-
-- Struktur fitur UNSW-NB15, NSL-KDD, dan CICIDS2019 **berbeda satu sama lain**,
-  sehingga form input di dashboard akan otomatis berubah mengikuti dataset
-  yang dipilih (dibaca dari `metadata.json` masing-masing).
-- Kolom kategorikal (misalnya `proto`, `service`, `protocol_type`) harus diisi
-  dengan nilai yang sama seperti pada data training aslinya (contoh: `tcp`,
-  `http`), karena encoder tidak bisa mengenali kategori baru yang belum pernah
-  dilihat saat training.
+Proyek ini dikembangkan sebagai implementasi hasil penelitian Machine Learning ke dalam aplikasi web yang lebih interaktif dan mudah digunakan. Aplikasi ini juga menjadi dasar untuk pengembangan sistem deteksi intrusi jaringan yang lebih lanjut, seperti monitoring lalu lintas secara real-time, klasifikasi jenis serangan, integrasi log jaringan, dan dashboard keamanan siber.
